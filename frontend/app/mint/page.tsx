@@ -56,11 +56,8 @@ export default function MintPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mint`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer mock-token-${address}`,
-        },
-        body: JSON.stringify({ name, image: template?.image || '' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address, name, image: template?.image || '' }),
       });
 
       if (!res.ok) {
