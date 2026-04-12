@@ -1,6 +1,6 @@
 const prisma = require('../db/prisma');
 const { RoyaltyReceipt } = require('../models/mongo');
-const { royaltyClaimQueue } = require('../configs/queue');
+const { getRoyaltyClaimQueue } = require('../configs/queue');
 const cacheService = require('./cacheService');
 
 class RoyaltyService {
@@ -56,7 +56,7 @@ class RoyaltyService {
       throw Object.assign(new Error('No unclaimed earnings found'), { statusCode: 404 });
     }
 
-    await royaltyClaimQueue.add('claim-royalties', {
+    await getRoyaltyClaimQueue().add('claim-royalties', {
       walletAddress: normalized,
       earningIds: earnings.map((e) => e.id),
       amounts: earnings.map((e) => e.amount),

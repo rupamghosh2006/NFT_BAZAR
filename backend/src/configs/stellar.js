@@ -1,4 +1,4 @@
-const StellarSdk = require('stellar-sdk');
+const StellarSdk = require('@stellar/stellar-sdk');
 const config = require('./index');
 
 const isTestnet = config.stellar.network === 'testnet';

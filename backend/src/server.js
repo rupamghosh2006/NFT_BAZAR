@@ -8,9 +8,9 @@ const redis = require('./configs/redis');
 
 async function start() {
   try {
-    await connectMongo();
-    await prisma.$connect();
-    await redis.connect();
+    await connectMongo().catch((err) => console.warn('MongoDB connect failed:', err.message));
+    await prisma.$connect().catch((err) => console.warn('PostgreSQL connect failed:', err.message));
+    await redis.connect().catch((err) => console.warn('Redis connect failed:', err.message));
 
     const server = app.listen(config.port, () => {
       console.log(`[Server] NFT Bazar Backend running on port ${config.port}`);
@@ -20,8 +20,8 @@ async function start() {
     const gracefulShutdown = async (signal) => {
       console.log(`[Server] ${signal} received, shutting down gracefully...`);
       server.close(async () => {
-        await prisma.$disconnect();
-        await redis.quit();
+        await prisma.$disconnect().catch(() => {});
+        await redis.quit().catch(() => {});
         console.log('[Server] Shutdown complete');
         process.exit(0);
       });

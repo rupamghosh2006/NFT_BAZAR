@@ -37,8 +37,7 @@ class StellarService {
       ? StellarSdk.Asset.native()
       : new StellarSdk.Asset(assetCode, config.contracts.paymentTokenId);
 
-    return StellarSdk.TransactionBuilder, {
-      source: sourceKeypair.publicKey(),
+    return new StellarSdk.TransactionBuilder(sourceKeypair, {
       fee: StellarSdk.BASE_FEE,
       networkPassphrase: StellarSdk.Networks.TESTNET,
     }).addOperation(StellarSdk.Operation.payment({

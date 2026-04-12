@@ -1,6 +1,6 @@
 const { server } = require('../configs/stellar');
 const redis = require('../configs/redis');
-const { indexerQueue } = require('../configs/queue');
+const { getIndexerQueue } = require('../configs/queue');
 const listingService = require('../services/listingService');
 const saleService = require('../services/saleService');
 const config = require('../configs');
@@ -70,7 +70,7 @@ class Indexer {
 
     console.log(`[Indexer] Processing tx: ${tx.hash}, ledger: ${lastLedger}`);
 
-    await indexerQueue.add('process-tx', {
+    await getIndexerQueue().add('process-tx', {
       txHash: tx.hash,
       ledger: lastLedger,
       operations: tx.operations || [],

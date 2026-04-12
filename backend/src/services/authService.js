@@ -44,13 +44,11 @@ class AuthService {
 
   verifySignature(walletAddress, nonce, signature, message) {
     try {
-      const StellarSdk = require('stellar-sdk').StellarSdk || require('stellar-sdk');
+      const StellarSdk = require('@stellar/stellar-sdk');
       const signedMessage = `${message || 'Sign this message'}:${nonce}`;
       const verifyPayload = Buffer.from(signedMessage).toString('base64');
       const decoded = Buffer.from(signature, 'base64');
-      const pubKey = Buffer.from(walletAddress.replace('G', '0'), 'base64');
-      const StellarSdk2 = require('stellar-sdk');
-      const keypair = StellarSdk2.Keypair.fromPublicKey(walletAddress);
+      const keypair = StellarSdk.Keypair.fromPublicKey(walletAddress);
       return keypair.verify(Buffer.from(verifyPayload), decoded);
     } catch (err) {
       console.error('Signature verification failed:', err.message);
