@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  walletAddress String    @unique
+  nonce         String    @default("")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  nftsOwned    NFT[]      @relation("ownedNFTs")
+  listings     Listing[]  @relation("sellerListings")
+  salesAsBuyer Sale[]     @relation("buyerSales")
+  salesAsSeller Sale[]     @relation("sellerSales")
+}
+
+model NFT {
+  id             String    @id @default(uuid())
+  tokenId        String
+  contractAddress String
+  ownerAddress   String
+  metadataUri    String?
+  name           String?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  owner          User      @relation("ownedNFTs", fields: [ownerAddress], references: [walletAddress])
+  listing        Listing?
+  sales          Sale[]
+
+  @@unique([contractAddress, tokenId])
+  @@index([ownerAddress])
+  @@index([contractAddress])
+}
+
+model Listing {
+  id           String    @id @default(uuid())
+  nftId        String    @unique
+  sellerAddress String
+  price        String    @db.VarChar(64)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  nft          NFT       @relation(fields: [nftId], references: [id], onDelete: Cascade)
+  seller       User      @relation("sellerListings", fields: [sellerAddress], references: [walletAddress])
+  sale         Sale?
+
+  @@index([sellerAddress])
+  @@index([active])
+  @@index([createdAt])
+}
+
+model Sale {
+  id            String    @id @default(uuid())
+  listingId     String    @unique
+  nftId         String
+  buyerAddress  String
+  sellerAddress String
+  price         String    @db.VarChar(64)
+  txHash        String?
+  royaltyAmount String    @db.VarChar(64)
+  createdAt     DateTime  @default(now())
+
+  listing       Listing   @relation(fields: [listingId], references: [id])
+  nft           NFT       @relation(fields: [nftId], references: [id])
+  buyer         User      @relation("buyerSales", fields: [buyerAddress], references: [walletAddress])
+  seller        User      @relation("sellerSales", fields: [sellerAddress], references: [walletAddress])
+  royaltyEarnings RoyaltyEarning[]
+
+  @@index([buyerAddress])
+  @@index([sellerAddress])
+  @@index([createdAt])
+}
+
+model RoyaltyEarning {
+  id                String   @id @default(uuid())
+  recipientAddress  String
+  amount            String   @db.VarChar(64)
+  saleId            String
+  claimed           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  sale              Sale     @relation(fields: [saleId], references: [id])
+
+  @@index([recipientAddress])
+  @@index([claimed])
+}
