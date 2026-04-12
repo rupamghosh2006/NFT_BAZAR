@@ -1,12 +1,32 @@
 const { Queue } = require('bullmq');
-const config = require('./index');
+const Redis = require('ioredis');
 
-const redisConfig = {
-  host: config.redis.host,
-  port: config.redis.port,
-  maxRetriesPerRequest: 1,
-  enableOfflineQueue: false,
-};
+function buildRedisConfig() {
+  const url = process.env.UPSTASH_REDIS_URL;
+  if (url) {
+    try {
+      const parsed = new URL(url);
+      return {
+        host: parsed.hostname,
+        port: parseInt(parsed.port || '6379', 10),
+        password: parsed.password || undefined,
+        tls: parsed.protocol === 'rediss:' ? {} : undefined,
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
+      };
+    } catch {
+      // fallback below
+    }
+  }
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    maxRetriesPerRequest: 1,
+    enableOfflineQueue: false,
+  };
+}
+
+const redisConfig = buildRedisConfig();
 
 const QUEUE_NAMES = {
   INDEXER: 'indexer-queue',

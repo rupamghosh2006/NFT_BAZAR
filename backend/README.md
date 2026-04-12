@@ -19,7 +19,7 @@ npm start
 - **Runtime**: Node.js 20, Express.js
 - **PostgreSQL**: Prisma ORM (Users, NFTs, Listings, Sales, Royalties)
 - **MongoDB**: Mongoose (on-chain data: ChainNFT, ChainListing, ChainSale, RoyaltyReceipt)
-- **Redis**: ioredis (caching, BullMQ queue backend)
+- **Redis**: Upstash (@upstash/redis for HTTP caching, ioredis for BullMQ queue backend)
 - **BullMQ**: background workers (indexer, royalty claims)
 - **Auth**: JWT + SIWE wallet signature verification
 - **Blockchain**: stellar-sdk v10

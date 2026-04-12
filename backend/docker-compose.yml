@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -30,88 +28,11 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ['CMD', 'mongosh', '--eval', 'db.adminCommand({ping:1})']
       interval: 10s
       timeout: 5s
       retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: nft_bazar_redis
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: nft_bazar_api
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nft_bazar
-      MONGODB_URI: mongodb://mongo:mongo@mongodb:27017/nft_bazar_chain?authSource=admin
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET}
-      STELLAR_NETWORK: ${STELLAR_NETWORK}
-      STELLAR_HORIZON_URL: ${STELLAR_HORIZON_URL}
-      STELLAR_RPC_URL: ${STELLAR_RPC_URL}
-      STELLAR_SOURCE_SECRET: ${STELLAR_SOURCE_SECRET}
-      PAYMENT_TOKEN_ID: ${PAYMENT_TOKEN_ID}
-      ROYALTY_POOL_ID: ${ROYALTY_POOL_ID}
-      NFT_COLLECTION_ID: ${NFT_COLLECTION_ID}
-      MARKETPLACE_ID: ${MARKETPLACE_ID}
-      CREATOR_ADDRESS: ${CREATOR_ADDRESS}
-      STAKERS_ADDRESS: ${STAKERS_ADDRESS}
-      TREASURY_ADDRESS: ${TREASURY_ADDRESS}
-      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
-    ports:
-      - '3000:3000'
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: nft_bazar_worker
-    command: node src/worker.js
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nft_bazar
-      MONGODB_URI: mongodb://mongo:mongo@mongodb:27017/nft_bazar_chain?authSource=admin
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_SECRET: ${JWT_SECRET}
-      STELLAR_NETWORK: ${STELLAR_NETWORK}
-      STELLAR_HORIZON_URL: ${STELLAR_HORIZON_URL}
-      STELLAR_SOURCE_SECRET: ${STELLAR_SOURCE_SECRET}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
 volumes:
   postgres_data:
   mongo_data:
-  redis_data:

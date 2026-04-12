@@ -1,0 +1,9 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/analytics/page": "app/analytics/page.js",
+  "/list/page": "app/list/page.js",
+  "/my-nfts/page": "app/my-nfts/page.js",
+  "/nft/[contract]/page": "app/nft/[contract]/page.js",
+  "/page": "app/page.js",
+  "/royalties/page": "app/royalties/page.js"
+}

@@ -1,16 +1,8 @@
-const Redis = require('ioredis');
-const config = require('./index');
+const { Redis } = require('@upstash/redis');
 
 const redis = new Redis({
-  host: config.redis.host,
-  port: config.redis.port,
-  maxRetriesPerRequest: 1,
-  enableOfflineQueue: false,
-  lazyConnect: true,
-  connectTimeout: 5000,
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
-
-redis.on('error', () => {});
-redis.on('connect', () => console.log('Redis connected'));
 
 module.exports = redis;
