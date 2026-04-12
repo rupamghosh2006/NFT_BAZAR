@@ -4,6 +4,7 @@ const listingRoutes = require('./listingRoutes');
 const saleRoutes = require('./saleRoutes');
 const royaltyRoutes = require('./royaltyRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
+const mintRoutes = require('./mintRoutes');
 
 module.exports = {
   authRoutes,
@@ -12,4 +13,5 @@ module.exports = {
   saleRoutes,
   royaltyRoutes,
   analyticsRoutes,
+  mintRoutes,
 };

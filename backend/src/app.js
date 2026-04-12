@@ -12,6 +12,7 @@ const {
   saleRoutes,
   royaltyRoutes,
   analyticsRoutes,
+  mintRoutes,
 } = require('./routes');
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/listings', listingRoutes);
 app.use('/sales', saleRoutes);
 app.use('/royalties', royaltyRoutes);
 app.use('/analytics', analyticsRoutes);
+app.use('/mint', mintRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({
