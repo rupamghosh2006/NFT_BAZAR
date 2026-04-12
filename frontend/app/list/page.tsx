@@ -19,7 +19,7 @@ export default function ListNFTPage() {
 
   const { data: nfts, isLoading } = useNFTsByOwner(address || '', { limit: 50 });
 
-  const availableNfts = nfts?.data.filter((n) => !n.listing?.active) || [];
+  const availableNfts = nfts?.data?.filter((n) => !n.listing?.active) ?? [];
 
   const handleList = async () => {
     if (!selectedNft || !price || parseFloat(price) <= 0) {

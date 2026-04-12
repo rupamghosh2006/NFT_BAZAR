@@ -36,11 +36,26 @@ export default function MyNFTsPage() {
     );
   }
 
-  const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: 'owned', label: 'Owned', count: owned?.pagination.total || 0 },
-    { key: 'listed', label: 'Listed', count: listings?.data.filter((l) => l.active).length || 0 },
-    { key: 'sold', label: 'Sold', count: sales?.data.filter((s) => s.sellerAddress.toUpperCase() === address?.toUpperCase()).length || 0 },
-  ];
+  const tabs = [
+  {
+    key: 'owned',
+    label: 'Owned',
+    count: owned?.pagination?.total ?? 0,
+  },
+  {
+    key: 'listed',
+    label: 'Listed',
+    count: listings?.data?.filter((l) => l.active)?.length ?? 0,
+  },
+  {
+    key: 'sold',
+    label: 'Sold',
+    count:
+      sales?.data?.filter(
+        (s) => s.sellerAddress?.toUpperCase() === address?.toUpperCase()
+      )?.length ?? 0,
+  },
+];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -59,7 +74,7 @@ export default function MyNFTsPage() {
         {tabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => setTab(t.key as Tab)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               tab === t.key
                 ? 'bg-primary-600 text-white'
