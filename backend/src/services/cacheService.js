@@ -4,7 +4,12 @@ class CacheService {
   async get(key) {
     try {
       const data = await redis.get(key);
-      return data ? JSON.parse(data) : null;
+      if (!data) return null;
+      try {
+        return JSON.parse(data);
+      } catch {
+        return data;
+      }
     } catch (err) {
       console.error('Cache get error:', err.message);
       return null;
@@ -13,7 +18,8 @@ class CacheService {
 
   async set(key, value, ttlSeconds) {
     try {
-      await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+      const serialized = typeof value === 'string' ? value : JSON.stringify(value);
+      await redis.set(key, serialized, { ex: ttlSeconds });
     } catch (err) {
       console.error('Cache set error:', err.message);
     }
@@ -27,15 +33,9 @@ class CacheService {
     }
   }
 
-  async delPattern(pattern) {
-    try {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        await redis.del(...keys);
-      }
-    } catch (err) {
-      console.error('Cache delPattern error:', err.message);
-    }
+  async delPattern(_pattern) {
+    // Upstash HTTP doesn't support KEYS command in serverless environments
+    // Individual keys must be tracked and deleted separately
   }
 
   buildKey(prefix, params) {
