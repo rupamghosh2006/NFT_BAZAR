@@ -43,7 +43,8 @@ async function mintNft({ toAddress, name, image, metadataUri }) {
     { upsert: true, new: true }
   );
 
-  await cacheService.delPattern('nfts:*');
+  await cacheService.del('nfts:list');
+  await cacheService.del(`nfts:owner:${toAddress.toUpperCase()}`);
 
   return nft;
 }

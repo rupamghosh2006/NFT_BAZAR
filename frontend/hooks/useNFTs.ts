@@ -45,7 +45,8 @@ export function useNFT(contractAddress: string, tokenId: string) {
 export function useNFTsByOwner(address: string, params?: { page?: number; limit?: number }) {
   return useQuery({
     queryKey: ['nfts', 'owner', address, params],
-    queryFn: () => api.nfts.byOwner(address, params).then((r) => r.data!),
+    queryFn: () => api.nfts.byOwner(address, params),
     enabled: !!address,
   });
 }
+

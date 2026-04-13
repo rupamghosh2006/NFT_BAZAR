@@ -93,6 +93,11 @@ class NftService {
     const skip = (page - 1) * limit;
     const normalized = walletAddress.toUpperCase();
 
+    const cacheKey = cacheService.buildKey('nfts:owner', { walletAddress: normalized, page, limit });
+    const cached = await cacheService.get(cacheKey);
+    if (cached) return cached;
+
+    console.log(`[getNftsByOwner] querying DB for ownerAddress=${normalized}`);
     const [nfts, total] = await Promise.all([
       prisma.nFT.findMany({
         where: { ownerAddress: normalized },
@@ -103,11 +108,15 @@ class NftService {
       }),
       prisma.nFT.count({ where: { ownerAddress: normalized } }),
     ]);
+    console.log(`[getNftsByOwner] DB returned ${nfts.length} NFTs, total=${total}`);
 
-    return {
+    const result = {
       data: nfts,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
+
+    await cacheService.set(cacheKey, result, config.cache.ttlNfts);
+    return result;
   }
 
   async mintNft({ tokenId, contractAddress, ownerAddress, metadataUri, name, image }) {
@@ -153,7 +162,8 @@ class NftService {
       { upsert: true, new: true }
     );
 
-    await cacheService.delPattern('nfts:*');
+    await cacheService.del('nfts:list');
+    await cacheService.del(`nfts:owner:${normalizedOwner}`);
 
     return nft;
   }
@@ -172,7 +182,8 @@ class NftService {
       { ownerAddress: toAddress.toUpperCase(), indexedAt: new Date() }
     );
 
-    await cacheService.delPattern('nfts:*');
+    await cacheService.del(`nfts:owner:${fromAddress.toUpperCase()}`);
+    await cacheService.del(`nfts:owner:${toAddress.toUpperCase()}`);
     await cacheService.del(`nft:${normalized}:${tokenId}`);
 
     return updated;

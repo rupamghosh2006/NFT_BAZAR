@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { WalletButton } from '@/components/layout/WalletButton';
 import { toastTxPending, toastTxSuccess, toastTxError } from '@/components/ui';
-import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 
 const NFT_TEMPLATES = [
   {
@@ -42,6 +42,7 @@ const NFT_TEMPLATES = [
 
 export default function MintPage() {
   const { address, isConnected } = useWallet();
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<number | null>(null);
   const [customName, setCustomName] = useState('');
   const [minting, setMinting] = useState(false);
@@ -66,6 +67,7 @@ export default function MintPage() {
       }
 
       toastTxSuccess('NFT minted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['nfts', 'owner', address] });
       setSelected(null);
       setCustomName('');
     } catch (err: any) {

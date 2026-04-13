@@ -9,17 +9,21 @@ import { CardSkeleton, EmptyState } from '@/components/ui';
 import { WalletButton } from '@/components/layout/WalletButton';
 import { truncateAddress, formatLumens } from '@/lib/constants';
 import { formatDate } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Tab = 'owned' | 'listed' | 'sold';
 
 export default function MyNFTsPage() {
   const { address, isConnected } = useWallet();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('owned');
 
   const { data: owned, isLoading: loadingOwned } = useNFTsByOwner(
     address || '',
     { limit: 50 }
   );
+
+  console.log('[MyNFTs] address:', address, 'isConnected:', isConnected, 'owned:', owned);
 
   const { data: listings } = useListings({
     seller: address,
@@ -58,7 +62,7 @@ export default function MyNFTsPage() {
     );
   }
 
-  const ownedItems = owned?.data ?? [];
+  const ownedItems = Array.isArray(owned) ? owned : (owned?.data ?? []);
 
   const listedItems =
     listings?.data?.filter((l) => l.active && l.nft) ?? [];
@@ -102,6 +106,7 @@ export default function MyNFTsPage() {
             {truncateAddress(address || '', 8)}
           </p>
         </div>
+
       </div>
 
       {/* Tabs */}
@@ -122,23 +127,60 @@ export default function MyNFTsPage() {
       </div>
 
       {/* OWNED */}
+      {/* OWNED — replace the existing ownedItems.map block */}
       {tab === 'owned' && (
         <div>
           {loadingOwned ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <CardSkeleton key={i} />
-              ))}
+              {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : ownedItems.length === 0 ? (
-            <EmptyState
-              title="No NFTs owned"
-              description="Mint or buy your first NFT"
-            />
+            <EmptyState title="No NFTs owned" description="Mint or buy your first NFT" />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {ownedItems.map((nft) => (
-                <NFTCard key={nft.id} nft={nft} />
+                <div
+                  key={nft.id}
+                  className="card text-left p-0 overflow-hidden"
+                >
+                  {/* Image or fallback */}
+                  <div className="relative aspect-square bg-dark-200 flex items-center justify-center">
+                    {nft.image ? (
+                      <img
+                        src={nft.image}
+                        alt={nft.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <svg
+                        className="w-12 h-12 text-white/20"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    )}
+                    <span className="absolute top-2 right-2 text-xs bg-primary-600 text-white px-2 py-0.5 rounded-full">
+                      Owned
+                    </span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-3">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {nft.name || `NFT #${nft.tokenId}`}
+                    </p>
+                    <p className="text-xs text-white/40 mt-0.5 truncate font-mono">
+                      {nft.tokenId}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           )}

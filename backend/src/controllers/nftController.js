@@ -42,13 +42,17 @@ async function getNftsByOwner(req, res, next) {
     const { walletAddress } = req.params;
     const { page, limit } = req.query;
 
+    console.log(`[getNftsByOwner] walletAddress=${walletAddress}`);
+
     const result = await nftService.getNftsByOwner(walletAddress, {
       page: parseInt(page || '1', 10),
       limit: parseInt(limit || '20', 10),
     });
 
+    console.log(`[getNftsByOwner] found ${result.data.length} NFTs for ${walletAddress}`);
     res.json({ success: true, ...result });
   } catch (err) {
+    console.error('[getNftsByOwner] error:', err.message);
     next(err);
   }
 }

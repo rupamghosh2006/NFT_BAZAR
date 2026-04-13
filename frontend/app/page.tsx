@@ -19,12 +19,14 @@ export default function HomePage() {
     sortOrder,
   });
 
+  const listings = Array.isArray(data) ? data : data?.data ?? [];
+
   const filteredNfts = search
-    ? data?.data.filter((nft) =>
+    ? listings.filter((nft) =>
         nft.nft?.name?.toLowerCase().includes(search.toLowerCase()) ||
         nft.nft?.tokenId?.includes(search)
       )
-    : data?.data;
+    : listings;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -73,7 +75,7 @@ export default function HomePage() {
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
           : filteredNfts?.map((listing) => (
-              <NFTCard key={listing.id} nft={listing.nft!} />
+              <NFTCard key={listing.id} nft={{ ...listing.nft!, listing }} />
             ))}
       </div>
 

@@ -53,7 +53,7 @@ export const api = {
     byOwner: (address: string, params?: { page?: number; limit?: number }) => {
       const qs = new URLSearchParams();
       if (params) Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
-      return fetcher<ApiResponse<PaginatedResponse<NFT>>>(`/nfts/owner/${address}?${qs}`);
+      return fetcher<ApiResponse<{ data: NFT[]; pagination: import('@/types').PaginationMeta }>>(`/nfts/owner/${address}?${qs}`).then((r) => r.data!);
     },
   },
 
