@@ -12,11 +12,22 @@
 
 ### Mobile Responsive View
 <!-- Insert mobile screenshot here -->
-![Mobile View](screenshots/mobile.png)
+![Mobile View](https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151711_afcwvn.png)
 
-### CI/CD Pipeline
-<!-- Insert CI/CD screenshot or badge here -->
-![CI/CD](screenshots/cicd.png)
+
+<p align="center">
+  <img src="https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151736_pls2qm.png" alt="Mobile View 1" width="30%"/>
+  <img src="https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151800_hvsxyp.png" alt="Mobile View 2" width="30%"/>
+  <img src="https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074600/Screenshot_2026-04-13_151830_vzv4no.png" alt="Mobile View 3" width="30%"/>
+</p>
+
+## Deployment
+
+- **Frontend**: Auto-deployed to Vercel on every push to `master`
+- **Backend**: Auto-deployed to Render via Docker on every push to `master`
+
+[![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://nft-bazar-tan.vercel.app)
+[![Render](https://img.shields.io/badge/Backend-Render-blue?logo=render)](https://nft-bazar.onrender.com)
 
 ---
 
