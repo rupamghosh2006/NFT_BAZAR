@@ -38,16 +38,19 @@ async function getListing(req, res, next) {
 
 async function createListing(req, res, next) {
   try {
-    const { nftId, price } = req.body;
-    const { walletAddress } = req.user;
+    const { nftId, price, walletAddress } = req.body;
+    const sellerAddress = req.user?.walletAddress || walletAddress;
 
     if (!nftId || !price) {
       return res.status(400).json({ success: false, error: { message: 'nftId and price are required' } });
     }
+    if (!sellerAddress) {
+      return res.status(401).json({ success: false, error: { message: 'walletAddress is required' } });
+    }
 
     const listing = await listingService.createListing({
       nftId,
-      sellerAddress: walletAddress,
+      sellerAddress,
       price,
     });
 

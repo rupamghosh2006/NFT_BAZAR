@@ -64,15 +64,13 @@ export default function MyNFTsPage() {
 
   const ownedItems = Array.isArray(owned) ? owned : (owned?.data ?? []);
 
-  const listedItems =
-    listings?.data?.filter((l) => l.active && l.nft) ?? [];
+  const listingsList = Array.isArray(listings) ? listings : ((listings as any)?.data ?? []);
+  const listedItems = listingsList.filter((l: any) => l.active && l.nft);
 
-  const soldItems =
-    sales?.data?.filter(
-      (s) =>
-        s.sellerAddress?.toUpperCase() ===
-        address?.toUpperCase()
-    ) ?? [];
+  const salesList = Array.isArray(sales) ? sales : (sales?.data ?? []);
+  const soldItems = salesList.filter(
+    (s: any) => s.sellerAddress?.toUpperCase() === address?.toUpperCase()
+  );
 
   const tabs = [
     {
@@ -197,7 +195,7 @@ export default function MyNFTsPage() {
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {listedItems.map((listing) => (
+              {listedItems.map((listing: any) => (
                 <NFTCard
                   key={listing.id}
                   nft={listing.nft!}

@@ -28,10 +28,22 @@ export default function ListNFTPage() {
       return;
     }
     setIsSubmitting(true);
-    setStep('list');
     try {
-      // In production: call Stellar Soroban contract
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/listings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nftId: selectedNft,
+          price: parseFloat(price),
+          walletAddress: address,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'Failed to list NFT');
+      }
+
       toast.success('NFT listed successfully!');
       setSelectedNft(null);
       setPrice('');

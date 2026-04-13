@@ -68,7 +68,7 @@ export const api = {
     }) => {
       const qs = new URLSearchParams();
       if (params) Object.entries(params).forEach(([k, v]) => { if (v) qs.set(k, String(v)); });
-      return fetcher<ApiResponse<PaginatedResponse<Listing>>>(`/listings?${qs}`);
+      return fetcher<PaginatedResponse<Listing>>(`/listings?${qs}`);
     },
     get: (id: string) => fetcher<ApiResponse<Listing>>(`/listings/${id}`),
   },
