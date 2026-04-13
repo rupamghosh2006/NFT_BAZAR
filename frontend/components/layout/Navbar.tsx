@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { WalletButton } from './WalletButton';
 import { cn } from '@/lib/utils';
@@ -21,8 +22,8 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-dark-200/80 backdrop-blur-xl border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center font-bold text-dark-300">
-            N
+          <div className="w-8 h-8 flex items-center justify-center rounded-full overflow-hidden">
+            <img src="/favicon.jpeg" alt="NFT Bazar" className="w-full h-full object-cover" />
           </div>
           <span className="text-lg font-bold text-white hidden sm:block">NFT Bazar</span>
         </Link>
