@@ -1,84 +1,206 @@
 # NFT Bazar
 
-Soroban testnet NFT marketplace with a royalty split pool.
+> Decentralized NFT marketplace on the Stellar network with automatic royalty splitting for creators.
+
+**Live Demo:** https://nft-bazar-tan.vercel.app
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/nft-bazar)
+
+---
+
+## Screenshots
+
+### Mobile Responsive View
+<!-- Insert mobile screenshot here -->
+![Mobile View](screenshots/mobile.png)
+
+### CI/CD Pipeline
+<!-- Insert CI/CD screenshot or badge here -->
+![CI/CD](screenshots/cicd.png)
+
+---
+
+## Features
+
+- **Browse NFTs** — Discover and filter NFTs listed on the marketplace
+- **Mint NFTs** — Create new NFTs with custom names and images (Unsplash templates)
+- **List for Sale** — Set a price and list your NFT on the marketplace
+- **Buy NFTs** — Purchase NFTs directly from other users
+- **Automatic Royalties** — 10% royalty on every resale, split between creator (50%), stakers (30%), and treasury (20%)
+- **Wallet Integration** — Connect via Freighter wallet (Stellar ecosystem)
+- **Analytics Dashboard** — View volume charts, top sales, and market statistics
+- **Mobile-First Design** — Fully responsive UI with bottom navigation
+
+---
+
+## Tech Stack
+
+### Frontend
+- **Next.js 14** — React framework with App Router
+- **TypeScript** — Type-safe codebase
+- **Tailwind CSS** — Utility-first styling
+- **React Query** — Server state management & caching
+- **Zustand** — Client-side wallet state
+- **Recharts** — Analytics charts
+- **Framer Motion** — Smooth animations
+
+### Backend
+- **Express.js** — REST API server
+- **Prisma** + **Neon PostgreSQL** — Relational data (users, NFTs, listings, sales)
+- **Mongoose** + **MongoDB Atlas** — Blockchain event indexing
+- **Upstash Redis** — HTTP caching layer
+- **BullMQ** + **ioredis** — Background job queues
+- **JWT** — Authentication (SIWE-ready)
+
+### Blockchain
+- **Stellar Testnet** — Soroban smart contracts
+- **Freighter** — Wallet connection
+- **@stellar/stellar-sdk** — Backend Horizon/RPC integration
+
+---
+
+## Smart Contracts (Soroban)
+
+| Contract | Address (Testnet) |
+|---|---|
+| Payment Token | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
+| RoyaltyPool | `CCFACXY34DFXJZJIHFNV6WRDQLEHGKX7YXLLW6PVOKZTLJG2APU4LG4C` |
+| NFTCollection | `CBWA6JYF2XUQOPJYEVSVTN5IBUL2KXXN2ZOMV62UH5ESP2552S7IF4MX` |
+| Marketplace | `CBQQ6JAWRKCICVG3VT5IOSZOLFXPSG2F74DDFYFL7GWLOHDPOVK54BFT` |
+
+### Deployment Transactions
+
+| Event | Transaction Hash |
+|---|---|
+| RoyaltyPool deploy | `2fa51e5b8bf0c1dadf6ba9937f91b3841b2f1cb06b9f519c68522979d7eceb94` |
+| RoyaltyPool initialize | `9cb954867efddfa9a819ff0564bafb3d20499ee216303f9b59688eb526227f48` |
+| NFTCollection deploy | `eaa132e59081efd6387786903f9c4e990cf612fd45e0dce95603dd5adf78346a` |
+| NFTCollection initialize | `dcbe5f7ab5365e8e5a741c7bf903c54b6f02c6d40c378f4f50fc634ed83a4767` |
+| Marketplace deploy | `7da9ff9d210a4b73219624c20221ea033b236638c0db89643be8383da43ce7af` |
+| Marketplace initialize | `33ed3afb673264787bf79277df086d57c36443a404b6cb8f06670ad911391a99` |
+
+### Royalty Split (10% of each sale)
+
+| Recipient | Share |
+|---|---|
+| Creator | 50% |
+| Stakers | 30% |
+| Treasury | 20% |
+
+### Inter-Contract Calls
+
+`Marketplace.buy_nft()` performs:
+1. `NFTCollection.royalty_info()` — queries royalty data
+2. `RoyaltyPool.distribute()` — splits and distributes royalty payments
+
+Then sends seller proceeds via the Stellar Asset Contract and transfers the NFT to the buyer.
+
+---
 
 ## Architecture
 
-- `NFTCollection`: minimal non-fungible collection contract with token ownership, metadata URI storage, transfer, and `royalty_info`.
-- `RoyaltyPool`: receives royalty payments in a Stellar Asset Contract token, splits them between creator, stakers, and treasury, then lets recipients claim.
-- `Marketplace`: escrows NFTs, reads royalty data from `NFTCollection`, calls `RoyaltyPool.distribute`, pays the seller, and transfers the NFT to the buyer.
-
-## Top-Level Layout
-
-```text
-backend/
-contracts/
-frontend/
-scripts/
+```
+frontend/          Next.js 14 (Vercel)
+backend/           Express API (Railway / Render)
+neondb/            PostgreSQL — users, NFTs, listings, sales
+mongodb/           MongoDB Atlas — blockchain event indexing
+upstash/           Redis — API response caching
+bullmq/            ioredis — background job processing
 ```
 
-## Testnet Deployment
+---
 
-Do not put recovery phrases or seed phrases in `.env`. Use a Stellar CLI identity name in `STELLAR_SOURCE`, and keep the secret in the CLI key store.
+## Getting Started
 
-Install Rust and Stellar CLI in WSL, then run from the repository root:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL (Neon) or local Postgres
+- MongoDB Atlas cluster
+- Upstash Redis account
+- Freighter wallet (browser extension)
+
+### Backend Setup
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-curl -fsSL https://github.com/stellar/stellar-cli/raw/main/install.sh | sh
-rustup target add wasm32v1-none
-stellar keys generate nft-bazar-admin --network testnet --fund
-export STELLAR_SOURCE=nft-bazar-admin
-export CREATOR_ADDRESS="$(stellar keys public-key nft-bazar-admin)"
-export STAKERS_ADDRESS="G..."
-export TREASURY_ADDRESS="G..."
-bash scripts/deploy-testnet.sh
+cd backend
+cp .env.example .env
+# Fill in your DATABASE_URL, MONGODB_URI, UPSTASH_* vars
+npm install
+npx prisma db push
+npm run dev
 ```
 
-On Windows PowerShell, install Stellar CLI with `winget install --id Stellar.StellarCLI`, then use:
+### Frontend Setup
 
-```powershell
-$env:STELLAR_SOURCE = "nft-bazar-admin"
-$env:CREATOR_ADDRESS = "G..."
-$env:STAKERS_ADDRESS = "G..."
-$env:TREASURY_ADDRESS = "G..."
-.\scripts\deploy-testnet.ps1
+```bash
+cd frontend
+cp .env.example .env.local
+# NEXT_PUBLIC_API_URL=http://localhost:3000
+npm install
+npm run dev
 ```
 
-The deployment order is:
+### Environment Variables
 
-1. Deploy native XLM Stellar Asset Contract for sale payments.
-2. Deploy and initialize `RoyaltyPool` with `[5000, 3000, 2000]` shares.
-3. Deploy and initialize `NFTCollection` with 10% royalties.
-4. Deploy and initialize `Marketplace`.
-
-## Inter-Contract Calls
-
-`Marketplace.buy_nft()` performs the two advanced calls:
-
-```text
-buy_nft() -> NFTCollection.royalty_info()
-buy_nft() -> RoyaltyPool.distribute()
+**Backend (`backend/.env`):**
+```
+DATABASE_URL=           # Neon PostgreSQL
+MONGODB_URI=            # MongoDB Atlas
+UPSTASH_REDIS_REST_URL= # Upstash Redis
+UPSTASH_REDIS_REST_TOKEN=
+JWT_SECRET=
+STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org
+NFT_COLLECTION_ID=CBWA6JYF2XUQOPJYEVSVTN5IBUL2KXXN2ZOMV62UH5ESP2552S7IF4MX
+MARKETPLACE_ID=CBQQ6JAWRKCICVG3VT5IOSZOLFXPSG2F74DDFYFL7GWLOHDPOVK54BFT
+ROYALTY_POOL_ID=CCFACXY34DFXJZJIHFNV6WRDQLEHGKX7YXLLW6PVOKZTLJG2APU4LG4C
+PAYMENT_TOKEN_ID=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 ```
 
-The Marketplace then sends the seller proceeds through the configured Stellar Asset Contract and transfers the NFT from marketplace escrow to the buyer.
+**Frontend (`frontend/.env.local`):**
+```
+NEXT_PUBLIC_API_URL=https://your-backend-url.onrender.com
+NEXT_PUBLIC_NETWORK=testnet
+```
 
-## Contract Addresses
+---
 
-- Payment token: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
-- RoyaltyPool: `CCFACXY34DFXJZJIHFNV6WRDQLEHGKX7YXLLW6PVOKZTLJG2APU4LG4C`
-- NFTCollection: `CBWA6JYF2XUQOPJYEVSVTN5IBUL2KXXN2ZOMV62UH5ESP2552S7IF4MX`
-- Marketplace: `CBQQ6JAWRKCICVG3VT5IOSZOLFXPSG2F74DDFYFL7GWLOHDPOVK54BFT`
+## API Routes
 
-## Testnet Transactions
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/nfts` | List all NFTs (filterable) |
+| GET | `/nfts/owner/:address` | Get NFTs by owner |
+| GET | `/nfts/:contract/:tokenId` | Get NFT details |
+| POST | `/mint` | Mint a new NFT |
+| GET | `/listings` | List active listings |
+| POST | `/listings` | Create a listing |
+| DELETE | `/listings/:id` | Cancel a listing |
+| GET | `/sales` | Recent sales |
+| GET | `/royalties/:address` | Claimable royalties |
+| GET | `/royalties/history/:address` | Royalty history |
+| POST | `/royalties/claim` | Claim royalties |
+| GET | `/analytics/volume` | Volume analytics |
+| GET | `/analytics/top-nfts` | Top selling NFTs |
+| GET | `/analytics/stats` | Market statistics |
 
-- RoyaltyPool deploy: `2fa51e5b8bf0c1dadf6ba9937f91b3841b2f1cb06b9f519c68522979d7eceb94`
-- RoyaltyPool initialize: `9cb954867efddfa9a819ff0564bafb3d20499ee216303f9b59688eb526227f48`
-- NFTCollection deploy: `eaa132e59081efd6387786903f9c4e990cf612fd45e0dce95603dd5adf78346a`
-- NFTCollection initialize: `dcbe5f7ab5365e8e5a741c7bf903c54b6f02c6d40c378f4f50fc634ed83a4767`
-- Marketplace deploy: `7da9ff9d210a4b73219624c20221ea033b236638c0db89643be8383da43ce7af`
-- Marketplace initialize: `33ed3afb673264787bf79277df086d57c36443a404b6cb8f06670ad911391a99`
+---
 
-## Event Streaming
+## Pages
 
-The contracts emit Soroban diagnostic events for minting, listing, sale, cancellation, royalty distribution, and claims. The frontend can stream these later through Stellar RPC event queries.
+| Route | Description |
+|---|---|
+| `/` | Marketplace — browse & filter NFTs |
+| `/my-nfts` | My NFTs — owned, listed, sold tabs |
+| `/mint` | Mint new NFTs with templates |
+| `/list` | List an NFT for sale |
+| `/royalties` | Claimable royalties & history |
+| `/analytics` | Volume charts & top sales |
+| `/nft/:contract/:tokenId` | NFT detail + buy |
+
+---
+
+## License
+
+MIT
