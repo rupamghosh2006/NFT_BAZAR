@@ -34,7 +34,7 @@ async function buildListNftTransaction(nftContractId, sellerAddress, tokenId, pr
       marketplaceContractId,
       'list_nft',
       args,
-      adminAddress
+      sellerAddress  // Seller signs the transaction
     );
 
     // Store listing request
@@ -144,11 +144,11 @@ async function buildBuyNftTransaction(nftContractId, buyerAddress, tokenId) {
       sorobanService.u64ToScVal(tokenId),
     ];
 
-    const txData = await sorobanService.buildContractInvokeTx(
+     const txData = await sorobanService.buildContractInvokeTx(
       marketplaceContractId,
       'buy_nft',
       args,
-      adminAddress
+      buyerAddress  // Buyer signs the transaction
     );
 
     // Store buy request

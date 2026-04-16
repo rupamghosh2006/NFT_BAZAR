@@ -203,24 +203,21 @@ class SorobanContractService {
   }
 
   /**
-   * Number to u64 SC value
-   * @param {number|string|BigInt} num - Number to convert
-   * @returns {Object} SC u64 value
-   */
+    * Number to u64 SC value
+    * @param {number|string|BigInt} num - Number to convert
+    * @returns {Object} SC u64 value
+    */
   u64ToScVal(num) {
-    return xdr.ScVal.scValTypeU64(new xdr.Uint64(BigInt(num)));
+    return nativeToScVal(BigInt(num));
   }
 
   /**
-   * Number to i128 SC value
-   * @param {number|string|BigInt} num - Number to convert
-   * @returns {Object} SC i128 value
-   */
+    * Number to i128 SC value
+    * @param {number|string|BigInt} num - Number to convert
+    * @returns {Object} SC i128 value
+    */
   i128ToScVal(num) {
-    const bigValue = BigInt(num);
-    const lo = new xdr.Uint64(bigValue & BigInt('0xFFFFFFFFFFFFFFFF'));
-    const hi = new xdr.Int64(bigValue >> BigInt(64));
-    return xdr.ScVal.scValTypeI128(new xdr.Int128Parts({ lo, hi }));
+    return nativeToScVal(BigInt(num));
   }
 }
 
