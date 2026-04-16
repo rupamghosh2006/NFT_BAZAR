@@ -29,7 +29,74 @@ async function fetcher<T>(url: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function fileUploadFetcher<T>(url: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${BASE_URL}${url}`, {
+    method: 'POST',
+    body: formData,
+    // Don't set Content-Type header - browser will set it with boundary for multipart/form-data
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Request failed' }));
+    throw new Error(error.error?.message || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
 export const api = {
+  upload: {
+    image: (file: File, walletAddress?: string) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      if (walletAddress) {
+        formData.append('walletAddress', walletAddress);
+      }
+      return fileUploadFetcher<ApiResponse<{ ipfsHash: string; url: string; size: number }>>('/upload', formData);
+    },
+  },
+
+  soroban: {
+    mint: {
+      build: (walletAddress: string, name: string, imageUrl: string) =>
+        fetcher<ApiResponse<{ transactionXDR: string; contractId: string; method: string; mintRequestId: string; requiresSignature: boolean; signerAddress: string }>>('/soroban/mint/build', {
+          method: 'POST',
+          body: JSON.stringify({ walletAddress, name, imageUrl }),
+        }),
+      submit: (signedTxXDR: string, mintRequestId: string, tokenId: number, walletAddress: string, name: string, imageUrl: string) =>
+        fetcher<ApiResponse<{ nft: NFT; txHash: string; explorerUrl: string }>>('/soroban/mint/submit', {
+          method: 'POST',
+          body: JSON.stringify({ signedTxXDR, mintRequestId, tokenId, walletAddress, name, imageUrl }),
+        }),
+    },
+    marketplace: {
+      list: {
+        build: (nftContractId: string, sellerAddress: string, tokenId: number, priceInStroops: string) =>
+          fetcher<ApiResponse<{ transactionXDR: string; contractId: string; method: string; listingRequestId: string; requiresSignature: boolean; signerAddress: string }>>('/soroban/marketplace/list/build', {
+            method: 'POST',
+            body: JSON.stringify({ nftContractId, sellerAddress, tokenId, priceInStroops }),
+          }),
+        submit: (signedTxXDR: string, listingRequestId: string, nftContractId: string, tokenId: number, sellerAddress: string, priceInStroops: string, txHash: string) =>
+          fetcher<ApiResponse<Listing>>('/soroban/marketplace/list/submit', {
+            method: 'POST',
+            body: JSON.stringify({ signedTxXDR, listingRequestId, nftContractId, tokenId, sellerAddress, priceInStroops, txHash }),
+          }),
+      },
+      buy: {
+        build: (nftContractId: string, buyerAddress: string, tokenId: number) =>
+          fetcher<ApiResponse<{ transactionXDR: string; contractId: string; method: string; buyRequestId: string; requiresSignature: boolean; signerAddress: string }>>('/soroban/marketplace/buy/build', {
+            method: 'POST',
+            body: JSON.stringify({ nftContractId, buyerAddress, tokenId }),
+          }),
+        submit: (signedTxXDR: string, buyRequestId: string, nftContractId: string, tokenId: number, buyerAddress: string, price: string, txHash: string) =>
+          fetcher<ApiResponse<Sale>>('/soroban/marketplace/buy/submit', {
+            method: 'POST',
+            body: JSON.stringify({ signedTxXDR, buyRequestId, nftContractId, tokenId, buyerAddress, price, txHash }),
+          }),
+      },
+    },
+  },
+
   nfts: {
     list: (params?: {
       page?: number;

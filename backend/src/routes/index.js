@@ -5,6 +5,9 @@ const saleRoutes = require('./saleRoutes');
 const royaltyRoutes = require('./royaltyRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
 const mintRoutes = require('./mintRoutes');
+const uploadRoutes = require('./uploadRoutes');
+const sorobanMintRoutes = require('./sorobanMintRoutes');
+const sorobanMarketplaceRoutes = require('./sorobanMarketplaceRoutes');
 
 module.exports = {
   authRoutes,
@@ -14,4 +17,7 @@ module.exports = {
   royaltyRoutes,
   analyticsRoutes,
   mintRoutes,
+  uploadRoutes,
+  sorobanMintRoutes,
+  sorobanMarketplaceRoutes,
 };

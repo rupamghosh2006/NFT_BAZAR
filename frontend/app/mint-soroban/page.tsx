@@ -2,14 +2,16 @@
 
 import { useState, useRef } from 'react';
 import { useWallet } from '@/hooks/useWallet';
+import { useSorobanTransaction } from '@/hooks/useSorobanTransaction';
 import { WalletButton } from '@/components/layout/WalletButton';
 import { toastTxPending, toastTxSuccess, toastTxError } from '@/components/ui';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
-export default function MintPage() {
+export default function MintPageSoroban() {
   const { address, isConnected } = useWallet();
+  const { signTransaction } = useSorobanTransaction();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,13 +27,11 @@ export default function MintPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toastTxError('Please select a valid image file');
       return;
     }
 
-    // Validate file size (10MB max)
     if (file.size > 10 * 1024 * 1024) {
       toastTxError('File size must be less than 10MB');
       return;
@@ -39,7 +39,6 @@ export default function MintPage() {
 
     setSelectedFile(file);
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (event) => {
       setImagePreview(event.target?.result as string);
@@ -82,7 +81,7 @@ export default function MintPage() {
     }
   };
 
-  // Mint NFT
+  // Mint NFT via Soroban
   const handleMint = async () => {
     if (!address || !uploadedImageUrl || !nftName.trim()) {
       toastTxError('Please fill all fields');
@@ -92,26 +91,40 @@ export default function MintPage() {
     toastTxPending();
     setMinting(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mint`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: address,
-          name: nftName.trim(),
-          image: uploadedImageUrl,
-        }),
-      });
+      // Step 1: Build unsigned transaction
+      const buildResponse = await api.soroban.mint.build(address, nftName.trim(), uploadedImageUrl);
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error?.message || 'Mint failed');
+      if (!buildResponse.success) {
+        throw new Error(buildResponse.error?.message || 'Failed to build transaction');
       }
 
-      const { data: nft } = await res.json();
-      
-      // Build explorer link
-      const explorerUrl = `https://stellar.expert/explorer/testnet/contract/${nft.contractAddress}`;
-      
+      const { transactionXDR, mintRequestId } = buildResponse.data!;
+
+      // Step 2: Sign with Freighter
+      const signedTxXDR = await signTransaction(transactionXDR, address);
+
+      // Step 3: Extract transaction hash and token ID from signed XDR
+      // Note: In production, you'd parse the XDR to get the actual token ID returned from contract
+      // For now, we'll use a client-side generated ID (backend will use the actual one from contract)
+      const tokenId = Math.floor(Math.random() * 1000000); // Placeholder
+      const txHash = Buffer.from(transactionXDR).toString('base64').slice(0, 32); // Placeholder
+
+      // Step 4: Submit signed transaction to backend
+      const submitResponse = await api.soroban.mint.submit(
+        signedTxXDR,
+        mintRequestId,
+        tokenId,
+        address,
+        nftName.trim(),
+        uploadedImageUrl
+      );
+
+      if (!submitResponse.success) {
+        throw new Error(submitResponse.error?.message || 'Failed to submit transaction');
+      }
+
+      const { nft, explorerUrl } = submitResponse.data!;
+
       // Show success toast with explorer link
       toastTxSuccess(
         <div className="flex flex-col gap-2">
@@ -129,7 +142,7 @@ export default function MintPage() {
           </a>
         </div>
       );
-      
+
       queryClient.invalidateQueries({ queryKey: ['nfts', 'owner', address] });
       setNftName('');
       setUploadedImageUrl(null);
@@ -154,7 +167,7 @@ export default function MintPage() {
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-white/80 mb-2">Connect Your Wallet</h2>
-        <p className="text-white/40 mb-6">Connect your Freighter wallet to mint NFTs</p>
+        <p className="text-white/40 mb-6">Connect your Freighter wallet to mint NFTs on Stellar testnet</p>
         <WalletButton />
       </div>
     );
@@ -163,8 +176,11 @@ export default function MintPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Create Your NFT</h1>
-        <p className="text-white/50">Upload an image and create a unique NFT on Stellar testnet</p>
+        <div className="flex items-center gap-2 mb-2">
+          <h1 className="text-3xl font-bold text-white">Create Your NFT</h1>
+          <span className="px-3 py-1 bg-primary-500/20 text-primary-400 text-xs rounded-full font-medium">Soroban</span>
+        </div>
+        <p className="text-white/50">Upload an image and mint a real NFT on Stellar testnet via Soroban contract</p>
       </div>
 
       <div className="space-y-8">
@@ -328,6 +344,13 @@ export default function MintPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4">
+          <p className="text-sm text-white/70">
+            <span className="font-semibold text-primary-400">Soroban Contract:</span> Your NFT will be minted directly on-chain using the Stellar Soroban contract. You'll be prompted to sign with Freighter wallet.
+          </p>
         </div>
 
         {/* Mint Button */}
