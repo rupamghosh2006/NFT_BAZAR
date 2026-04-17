@@ -9,8 +9,8 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'Market' },
   { href: '/my-nfts', label: 'My NFTs' },
-  { href: '/mint', label: 'Mint' },
-  { href: '/list', label: 'List NFT' },
+  { href: '/mint-soroban', label: 'Mint' },
+  { href: '/list-soroban', label: 'List NFT' },
   { href: '/royalties', label: 'Royalties' },
   { href: '/analytics', label: 'Analytics' },
 ];

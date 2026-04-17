@@ -63,10 +63,10 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({ walletAddress, name, imageUrl }),
         }),
-      submit: (signedTxXDR: string, mintRequestId: string, tokenId: number, walletAddress: string, name: string, imageUrl: string) =>
-        fetcher<ApiResponse<{ nft: NFT; txHash: string; explorerUrl: string }>>('/soroban/mint/submit', {
+       submit: (signedTxXDR: string, mintRequestId: string, walletAddress: string, name: string, imageUrl: string) =>
+        fetcher<ApiResponse<{ nft: NFT; txHash: string; explorerUrl: string; gasFeeLumens?: string; gasFeeStroops?: number }>>('/soroban/mint/submit', {
           method: 'POST',
-          body: JSON.stringify({ signedTxXDR, mintRequestId, tokenId, walletAddress, name, imageUrl }),
+          body: JSON.stringify({ signedTxXDR, mintRequestId, walletAddress, name, imageUrl }),
         }),
     },
     marketplace: {

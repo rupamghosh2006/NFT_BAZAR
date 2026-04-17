@@ -60,8 +60,14 @@ class SorobanContractService {
         .setTimeout(300)
         .build();
 
+      // Prepare the transaction using RPC server
+      // This adds necessary Soroban data like resource fees
+      console.log('Preparing Soroban transaction...');
+      const preparedTx = await sorobanServer.prepareTransaction(tx);
+      console.log('Transaction prepared successfully');
+
       // Serialize for transmission
-      const txXDR = tx.toEnvelope().toXDR('base64');
+      const txXDR = preparedTx.toEnvelope().toXDR('base64');
 
       return {
         success: true,
@@ -74,13 +80,67 @@ class SorobanContractService {
   }
 
   /**
+   * Simulate a transaction to get resource fees and validate it
+   * @param {string} txXDR - Unsigned transaction XDR
+   * @returns {Promise<Object>} Simulation result with fees
+   */
+  async simulateTransaction(txXDR) {
+    try {
+      console.log('Simulating transaction...');
+      // The RPC simulateTransaction expects an XDR string wrapped in an object with toXDR() method
+      const transactionWrapper = {
+        toXDR: () => txXDR
+      };
+      
+      const simResult = await sorobanServer.simulateTransaction(transactionWrapper);
+      
+      console.log('Simulation result:', {
+        error: simResult.error,
+        hasLatestLedger: !!simResult.latestLedger,
+        resultXdr: simResult.resultXdr ? 'present' : 'missing',
+        minResourceFee: simResult.minResourceFee,
+      });
+      
+      return simResult;
+    } catch (error) {
+      console.error('Error simulating transaction:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Submit a signed transaction to the network
-   * @param {string} signedTxXDR - Signed transaction XDR
+   * @param {string} signedTxXDR - Signed transaction XDR (base64 string)
    * @returns {Promise<Object>} Transaction result
    */
   async submitTransaction(signedTxXDR) {
     try {
-      const result = await sorobanServer.sendTransaction(signedTxXDR);
+      // The RPC server's sendTransaction expects an object with a toXDR() method
+      // that returns a base64-encoded XDR string.
+      // Create a simple wrapper object that satisfies this requirement.
+      const transactionWrapper = {
+        toXDR: () => signedTxXDR
+      };
+      
+      const result = await sorobanServer.sendTransaction(transactionWrapper);
+      
+      // Log detailed error information if transaction failed
+      if (result.status === 'ERROR') {
+        console.log('Transaction ERROR status:', result);
+        if (result.errorResult) {
+          try {
+            // Try to get error details from the result
+            const errorAttrs = result.errorResult._attributes;
+            console.log('Error attributes:', {
+              feeCharged: errorAttrs?.feeCharged?.toString?.(),
+              result: errorAttrs?.result?.toString?.(),
+            });
+          } catch (e) {
+            console.log('Could not parse error details:', e.message);
+          }
+        }
+      }
+      
       console.log('Transaction submitted:', result);
       return result;
     } catch (error) {

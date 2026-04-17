@@ -53,13 +53,7 @@ impl Marketplace {
         }
         seller.require_auth();
 
-        let market = env.current_contract_address();
-        env.invoke_contract::<()>(
-            &nft,
-            &Symbol::new(&env, "transfer"),
-            vec![&env, seller.clone().into_val(&env), market.into_val(&env), token_id.into_val(&env)],
-        );
-
+        // Store listing - NFT stays with seller until sale
         let listing = Listing {
             seller: seller.clone(),
             price,
@@ -77,13 +71,17 @@ impl Marketplace {
         buyer.require_auth();
 
         let key = DataKey::Listing(nft.clone(), token_id);
-        let mut listing: Listing = env.storage().persistent().get(&key).unwrap();
+        let listing: Listing = env.storage().persistent().get(&key).unwrap();
         if !listing.active {
             panic!("not listed");
         }
-        listing.active = false;
-        env.storage().persistent().set(&key, &listing);
+        
+        // Mark as inactive
+        let mut mutable_listing = listing.clone();
+        mutable_listing.active = false;
+        env.storage().persistent().set(&key, &mutable_listing);
 
+        // Process payment
         let (royalty_receiver, royalty_amount) = env.invoke_contract::<(Address, i128)>(
             &nft,
             &Symbol::new(&env, "royalty_info"),
@@ -106,42 +104,24 @@ impl Marketplace {
             token_client.transfer(&buyer, &listing.seller, &seller_proceeds);
         }
 
-        env.invoke_contract::<()>(
-            &nft,
-            &Symbol::new(&env, "transfer"),
-            vec![
-                &env,
-                env.current_contract_address().into_val(&env),
-                buyer.clone().into_val(&env),
-                token_id.into_val(&env),
-            ],
-        );
-
         env.events()
             .publish((symbol_short!("sold"), nft, token_id), (buyer, listing.price, royalty_amount));
+        
+        // NOTE: NFT transfer happens off-chain or via separate user transaction
     }
 
     pub fn cancel_listing(env: Env, nft: Address, seller: Address, token_id: u64) {
         seller.require_auth();
 
         let key = DataKey::Listing(nft.clone(), token_id);
-        let mut listing: Listing = env.storage().persistent().get(&key).unwrap();
+        let listing: Listing = env.storage().persistent().get(&key).unwrap();
         if listing.seller != seller || !listing.active {
             panic!("not active seller listing");
         }
-        listing.active = false;
-        env.storage().persistent().set(&key, &listing);
-
-        env.invoke_contract::<()>(
-            &nft,
-            &Symbol::new(&env, "transfer"),
-            vec![
-                &env,
-                env.current_contract_address().into_val(&env),
-                seller.clone().into_val(&env),
-                token_id.into_val(&env),
-            ],
-        );
+        
+        let mut mutable_listing = listing.clone();
+        mutable_listing.active = false;
+        env.storage().persistent().set(&key, &mutable_listing);
 
         env.events()
             .publish((symbol_short!("cancel"), nft, token_id), seller);

@@ -6,7 +6,8 @@ const config = require('../configs');
 
 /**
  * Mint NFT via Soroban contract
- * Builds a transaction that the frontend signs with Freighter
+ * Builds an unsigned transaction for the user to sign with Freighter
+ * User (recipient) must authorize the transaction and pays gas fees
  */
 async function buildMintNftTransaction(toAddress, name, imageUrl) {
   try {
@@ -19,8 +20,6 @@ async function buildMintNftTransaction(toAddress, name, imageUrl) {
       throw new Error('NFT_COLLECTION_ID not configured');
     }
 
-    const adminAddress = process.env.STELLAR_SOURCE || 'GAYWZSX43WUBRHM3F2QCWBL6ZOYSH7V5EOQOYMG6SMTGMM24RFEFCMHC';
-
     // Build arguments for mint function
     // mint(env: Env, to: Address, token_uri: String) -> u64
     const args = [
@@ -28,9 +27,15 @@ async function buildMintNftTransaction(toAddress, name, imageUrl) {
       sorobanService.stringToScVal(imageUrl),
     ];
 
-    // Build the transaction (not signed yet)
-    // The transaction source is the user's wallet (toAddress)
-    // They will sign it with Freighter
+    console.log('Building mint transaction with args:', {
+      to: toAddress,
+      imageUrl: imageUrl.substring(0, 50) + '...',
+      signer: toAddress,
+      argTypes: [typeof args[0], typeof args[1]],
+    });
+
+    // Build transaction from user's account
+    // User will sign this with Freighter and pay the gas fees
     const txData = await sorobanService.buildContractInvokeTx(
       nftContractId,
       'mint',
@@ -59,7 +64,7 @@ async function buildMintNftTransaction(toAddress, name, imageUrl) {
         method: 'mint',
         mintRequestId,
         requiresSignature: true,
-        signerAddress: toAddress,
+        signerAddress: toAddress,  // User must sign
       },
     };
   } catch (error) {
@@ -89,7 +94,7 @@ async function processMintTransaction(mintRequestId, txHash, tokenId, toAddress,
         metadataUri: imageUrl,
         name: name || `NFT #${tokenId}`,
         image: imageUrl,
-        txHash, // Store on-chain transaction hash
+        // Note: txHash is stored in MongoDB ChainNFT, not in PostgreSQL NFT
       },
     });
 

@@ -25,7 +25,7 @@ const primaryTabs = [
     ),
   },
   {
-    href: '/mint',
+    href: '/mint-soroban',
     label: 'Mint',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,7 +35,7 @@ const primaryTabs = [
     accent: true,
   },
   {
-    href: '/list',
+    href: '/list-soroban',
     label: 'List',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

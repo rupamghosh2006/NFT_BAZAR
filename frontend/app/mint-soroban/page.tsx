@@ -81,7 +81,7 @@ export default function MintPageSoroban() {
     }
   };
 
-  // Mint NFT via Soroban
+  // Mint NFT via Soroban (user signs with Freighter, user pays gas)
   const handleMint = async () => {
     if (!address || !uploadedImageUrl || !nftName.trim()) {
       toastTxError('Please fill all fields');
@@ -100,20 +100,13 @@ export default function MintPageSoroban() {
 
       const { transactionXDR, mintRequestId } = buildResponse.data!;
 
-      // Step 2: Sign with Freighter
+      // Step 2: User signs with Freighter (user pays gas fees)
       const signedTxXDR = await signTransaction(transactionXDR, address);
 
-      // Step 3: Extract transaction hash and token ID from signed XDR
-      // Note: In production, you'd parse the XDR to get the actual token ID returned from contract
-      // For now, we'll use a client-side generated ID (backend will use the actual one from contract)
-      const tokenId = Math.floor(Math.random() * 1000000); // Placeholder
-      const txHash = Buffer.from(transactionXDR).toString('base64').slice(0, 32); // Placeholder
-
-      // Step 4: Submit signed transaction to backend
+      // Step 3: Submit signed transaction to backend
       const submitResponse = await api.soroban.mint.submit(
         signedTxXDR,
         mintRequestId,
-        tokenId,
         address,
         nftName.trim(),
         uploadedImageUrl
@@ -123,12 +116,20 @@ export default function MintPageSoroban() {
         throw new Error(submitResponse.error?.message || 'Failed to submit transaction');
       }
 
-      const { nft, explorerUrl } = submitResponse.data!;
+      const { nft, explorerUrl, gasFeeLumens, txHash } = submitResponse.data!;
 
-      // Show success toast with explorer link
+      // Show success toast with explorer link and gas fee
       toastTxSuccess(
         <div className="flex flex-col gap-2">
-          <div>NFT "{nft.name}" minted successfully!</div>
+          <div>✨ NFT "{nft.name}" minted successfully!</div>
+          <div className="text-xs text-white/70">
+            Transaction: <span className="font-mono text-white/90">{txHash?.slice(0, 16)}...</span>
+          </div>
+          {gasFeeLumens && (
+            <div className="text-xs text-white/70">
+              Gas fee: <span className="font-mono text-white/90">{gasFeeLumens} XLM</span>
+            </div>
+          )}
           <a
             href={explorerUrl}
             target="_blank"

@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useNFT } from '@/hooks/useNFTs';
@@ -22,8 +22,8 @@ async function buyNFT(contractAddress: string, tokenId: string, price: string) {
   }
 }
 
-export default function NFTDetailPage({ params }: { params: Promise<{ contract: string; tokenId: string }> }) {
-  const { contract, tokenId } = use(params);
+export default function NFTDetailPage() {
+  const { contract, tokenId } = useParams() as { contract: string; tokenId: string };
   const { address, isConnected, connect } = useWallet();
   const { data: nft, isLoading } = useNFT(contract, tokenId);
   const { data: sales } = useSalesByNFT(contract, tokenId);

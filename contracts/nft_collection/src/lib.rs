@@ -55,8 +55,9 @@ impl NFTCollection {
     }
 
     pub fn mint(env: Env, to: Address, token_uri: String) -> u64 {
-        let admin: Address = env.storage().instance().get(&DataKey::Admin).unwrap();
-        admin.require_auth();
+        // User (recipient) must authorize the mint transaction, not admin
+        // This way users pay the gas fees
+        to.require_auth();
 
         let mut token_id: u64 = env
             .storage()
@@ -94,6 +95,25 @@ impl NFTCollection {
 
     pub fn transfer(env: Env, from: Address, to: Address, token_id: u64) {
         from.require_auth();
+
+        let owner: Address = env
+            .storage()
+            .persistent()
+            .get(&DataKey::Owner(token_id))
+            .unwrap();
+        if owner != from {
+            panic!("from is not owner");
+        }
+
+        env.storage()
+            .persistent()
+            .set(&DataKey::Owner(token_id), &to);
+        env.events()
+            .publish((symbol_short!("transfer"), token_id), (from, to));
+    }
+
+    pub fn transfer_from(env: Env, spender: Address, from: Address, to: Address, token_id: u64) {
+        spender.require_auth();
 
         let owner: Address = env
             .storage()
