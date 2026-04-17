@@ -64,7 +64,7 @@ impl Marketplace {
             .set(&DataKey::Listing(nft.clone(), token_id), &listing);
 
         env.events()
-            .publish((symbol_short!("listed"), nft, token_id), (seller, price));
+            .publish((symbol_short!("list"), nft, token_id), (seller, price));
     }
 
     pub fn buy_nft(env: Env, nft: Address, buyer: Address, token_id: u64) {
