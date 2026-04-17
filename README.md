@@ -76,19 +76,30 @@
 |---|---|
 | Payment Token | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
 | RoyaltyPool | `CCFACXY34DFXJZJIHFNV6WRDQLEHGKX7YXLLW6PVOKZTLJG2APU4LG4C` |
-| NFTCollection | `CBWA6JYF2XUQOPJYEVSVTN5IBUL2KXXN2ZOMV62UH5ESP2552S7IF4MX` |
-| Marketplace | `CBQQ6JAWRKCICVG3VT5IOSZOLFXPSG2F74DDFYFL7GWLOHDPOVK54BFT` |
+| NFTCollection | `CC3MTHR3LEYFONM43WWK7VNACJ7JG6HZWU7HVFDTLXHKT4GNJMAFEPDI` |
+| Marketplace | `CB7V3QCHJ3QLN4NPUFGOB6IWCF3IROEYGKOJX7A4V5VTPAHD563XDKZS` |
 
 ### Deployment Transactions
 
 | Event | Transaction Hash |
 |---|---|
-| RoyaltyPool deploy | `2fa51e5b8bf0c1dadf6ba9937f91b3841b2f1cb06b9f519c68522979d7eceb94` |
-| RoyaltyPool initialize | `9cb954867efddfa9a819ff0564bafb3d20499ee216303f9b59688eb526227f48` |
-| NFTCollection deploy | `eaa132e59081efd6387786903f9c4e990cf612fd45e0dce95603dd5adf78346a` |
-| NFTCollection initialize | `dcbe5f7ab5365e8e5a741c7bf903c54b6f02c6d40c378f4f50fc634ed83a4767` |
-| Marketplace deploy | `7da9ff9d210a4b73219624c20221ea033b236638c0db89643be8383da43ce7af` |
-| Marketplace initialize | `33ed3afb673264787bf79277df086d57c36443a404b6cb8f06670ad911391a99` |
+| NFTCollection deploy (latest) | `2e6fc62f2b15eeb338281b6dbf4773781b9a9865700bd37ed6612320a161c0e0` |
+| NFTCollection contract | `3d54a7f321db2ffa930ab8c5d9c349681253ee21d80bfe8777d85d920421a78d` |
+| Marketplace deploy (latest) | `30f3afe3649a153cb77b24171fb21a51593d8430aaff50dc393ac10586731a76` |
+| Marketplace contract | `4ec762e84b0ffaa75316e2ebebe5b436f1992b8b30b75591caccae5fbd164c13` |
+
+### User-Pays-Gas Model
+
+The platform implements a **user-pays-gas** model where:
+
+- **Users pay gas fees** for all operations (minting, listing, buying)
+- **No admin secrets** are stored in the backend
+- **Two-step transaction flow**:
+  1. Backend builds unsigned transaction
+  2. User signs with Freighter wallet and pays gas
+  3. Backend submits signed transaction
+
+This ensures users have full control over their transactions and gas spending.
 
 ### Royalty Split (10% of each sale)
 
@@ -104,7 +115,14 @@
 1. `NFTCollection.royalty_info()` — queries royalty data
 2. `RoyaltyPool.distribute()` — splits and distributes royalty payments
 
-Then sends seller proceeds via the Stellar Asset Contract and transfers the NFT to the buyer.
+Then sends seller proceeds via the Stellar Asset Contract.
+
+### Soroban Integration Features
+
+- **Soroban Minting** (`/mint-soroban`): Users mint NFTs directly on Soroban blockchain with their own wallet signature
+- **User-Controlled Gas**: Transaction fees are paid by users via Freighter wallet
+- **Gas Fee Display**: Frontend shows transaction hash and gas fees in success toasts
+- **Real-Time Updates**: NFT listings and sales indexed from Soroban events
 
 ---
 
@@ -163,8 +181,8 @@ UPSTASH_REDIS_REST_TOKEN=
 JWT_SECRET=
 STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
 STELLAR_RPC_URL=https://soroban-testnet.stellar.org
-NFT_COLLECTION_ID=CBWA6JYF2XUQOPJYEVSVTN5IBUL2KXXN2ZOMV62UH5ESP2552S7IF4MX
-MARKETPLACE_ID=CBQQ6JAWRKCICVG3VT5IOSZOLFXPSG2F74DDFYFL7GWLOHDPOVK54BFT
+NFT_COLLECTION_ID=CC3MTHR3LEYFONM43WWK7VNACJ7JG6HZWU7HVFDTLXHKT4GNJMAFEPDI
+MARKETPLACE_ID=CB7V3QCHJ3QLN4NPUFGOB6IWCF3IROEYGKOJX7A4V5VTPAHD563XDKZS
 ROYALTY_POOL_ID=CCFACXY34DFXJZJIHFNV6WRDQLEHGKX7YXLLW6PVOKZTLJG2APU4LG4C
 PAYMENT_TOKEN_ID=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 ```
@@ -184,7 +202,8 @@ NEXT_PUBLIC_NETWORK=testnet
 | GET | `/nfts` | List all NFTs (filterable) |
 | GET | `/nfts/owner/:address` | Get NFTs by owner |
 | GET | `/nfts/:contract/:tokenId` | Get NFT details |
-| POST | `/mint` | Mint a new NFT |
+| POST | `/soroban/mint/build` | Build mint transaction (user signs) |
+| POST | `/soroban/mint/submit` | Submit signed mint transaction |
 | GET | `/listings` | List active listings |
 | POST | `/listings` | Create a listing |
 | DELETE | `/listings/:id` | Cancel a listing |
@@ -205,7 +224,10 @@ NEXT_PUBLIC_NETWORK=testnet
 | `/` | Marketplace — browse & filter NFTs |
 | `/my-nfts` | My NFTs — owned, listed, sold tabs |
 | `/mint` | Mint new NFTs with templates |
+| `/mint-soroban` | Mint NFTs on Soroban (user pays gas) |
 | `/list` | List an NFT for sale |
+| `/list-soroban` | List NFTs on Soroban marketplace |
+| `/buy-soroban` | Buy NFTs on Soroban marketplace |
 | `/royalties` | Claimable royalties & history |
 | `/analytics` | Volume charts & top sales |
 | `/nft/:contract/:tokenId` | NFT detail + buy |
