@@ -51,7 +51,7 @@ jobs:
       - name: Deploy to Vercel
         run: |
           npm i -g vercel@latest
-          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
         working-directory: ./frontend
 
   deploy-backend:
