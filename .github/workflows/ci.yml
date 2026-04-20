@@ -49,11 +49,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Deploy to Vercel
-        uses: vercel/actions-deploy-action@dev
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          npm i -g vercel@latest
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: ./frontend
 
   deploy-backend:
     needs: ci
