@@ -11,8 +11,8 @@
 ## Screenshots
 
 ### Mobile Responsive View
-![Mobile View](https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776694119/Screenshot_2026-04-20_193754_vuoky7.png)
-
+<!-- Insert mobile screenshot here -->
+![Mobile View](https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151711_afcwvn.png)
 
 <p align="center">
   <img src="https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151736_pls2qm.png" alt="Mobile View 1" width="30%"/>
