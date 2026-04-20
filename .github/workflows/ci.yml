@@ -48,15 +48,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Install latest Vercel CLI
-        run: npm i -g vercel@51.7.0
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+- name: Deploy to Vercel
+        uses: vercel/actions-deploy-action@dev
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
 
   deploy-backend:
     needs: ci
