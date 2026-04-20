@@ -11,8 +11,7 @@
 ## Screenshots
 
 ### Mobile Responsive View
-<!-- Insert mobile screenshot here -->
-![Mobile View](https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776074599/Screenshot_2026-04-13_151711_afcwvn.png)
+![Mobile View](https://res.cloudinary.com/ddp0nf4uv/image/upload/v1776694119/Screenshot_2026-04-20_193754_vuoky7.png)
 
 
 <p align="center">
@@ -25,6 +24,10 @@
 
 - **Frontend**: Auto-deployed to Vercel on every push to `master`
 - **Backend**: Auto-deployed to Render via Docker on every push to `master`
+
+### CI/CD Pipeline
+
+[![CI/CD Pipeline](https://github.com/rupamghosh2006/NFT_BAZAR/actions/workflows/ci.yml/badge.svg)](https://github.com/rupamghosh2006/NFT_BAZAR/actions)
 
 [![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?logo=vercel)](https://nft-bazar-tan.vercel.app)
 [![Render](https://img.shields.io/badge/Backend-Render-blue?logo=render)](https://nft-bazar.onrender.com)
